@@ -1,0 +1,2 @@
+"use strict";(self.webpackChunkreact_website=self.webpackChunkreact_website||[]).push([[191],{191:(e,t,n)=>{n.r(t),n.d(t,{default:()=>c});n(43);var a=n(615),s=n(835),o=n(579);const c=()=>{const e=(0,a.Zp)();return(0,o.jsx)(s.A,{onLocationSelect:t=>{try{const e={address:t.address,name:t.name||"Current Location",lat:t.lat,lng:t.lng,type:"current"};localStorage.setItem("userLocation",JSON.stringify(e)),window.dispatchEvent(new CustomEvent("userLocationUpdated",{detail:e}))}catch(n){}e("/home")},onClose:()=>e("/home")})}}}]);
+//# sourceMappingURL=191.82f95564.chunk.js.map
