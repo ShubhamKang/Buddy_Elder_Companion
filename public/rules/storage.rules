@@ -1,0 +1,26 @@
+rules_version = '2';
+
+// Firebase Storage Security Rules for Buddy App
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Allow read/write access to buddy profile photos
+    match /buddy-profiles/{allPaths=**} {
+      allow read, write: if true; // For development - make more restrictive in production
+    }
+    
+    // Allow read/write access to user profile pictures (userinfo page)
+    match /profilePictures/{allPaths=**} {
+      allow read, write: if true; // dev only
+    }
+    
+    // Allow read/write access to buddy certificates
+    match /buddy-certificates/{allPaths=**} {
+      allow read, write: if true; // For development - make more restrictive in production
+    }
+    
+    // Default rule - deny all other access
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}
