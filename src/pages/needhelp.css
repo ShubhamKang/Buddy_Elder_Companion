@@ -1,0 +1,22 @@
+.needhelp-page{padding:16px 16px 90px;max-width:800px;margin:0 auto}
+.nh-header{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.nh-back{border:none;background:#f3f4f6;border-radius:10px;padding:6px 10px;cursor:pointer}
+.nh-card{background:#fff;border-radius:16px;box-shadow:0 8px 20px rgba(0,0,0,.06);padding:20px}
+.nh-title{margin:0 0 6px 0;font-weight:800;color:#111827}
+.nh-sub{margin:0 0 16px 0;color:#6b7280}
+.nh-actions{display:grid;grid-template-columns:1fr;gap:12px}
+.nh-btn{display:flex;align-items:center;gap:10px;justify-content:center;padding:14px 16px;border:none;border-radius:12px;font-weight:800;color:#fff;cursor:pointer}
+.nh-btn .emoji{font-size:18px}
+.whatsapp{background:#22c55e}
+.call{background:#3b82f6}
+.email{background:#f59e0b}
+.nh-meta{margin-top:16px;color:#6b7280;font-size:12px}
+@media(min-width:480px){.nh-actions{grid-template-columns:repeat(3,1fr)}}
+
+
+
+
+
+
+
+
