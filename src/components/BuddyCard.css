@@ -1,0 +1,150 @@
+.buddy-card {
+  background: white;
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+  cursor: pointer;
+  min-width: 280px;
+  margin: 8px;
+}
+
+.buddy-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+}
+
+.buddy-card-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.buddy-avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #f0f0f0;
+}
+
+.buddy-info {
+  flex: 1;
+}
+
+.buddy-name {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+}
+
+.buddy-service {
+  margin: 4px 0 0 0;
+  font-size: 13px;
+  color: #666;
+}
+
+.buddy-rating {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: #fff8e1;
+  padding: 4px 8px;
+  border-radius: 20px;
+}
+
+.star {
+  font-size: 14px;
+}
+
+.rating-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: #f59e0b;
+}
+
+.buddy-card-body {
+  margin-bottom: 12px;
+}
+
+.buddy-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.tag {
+  background: #f3f4f6;
+  color: #4b5563;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.buddy-stats {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-top: 1px solid #f0f0f0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.stat {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.stat-icon {
+  font-size: 14px;
+  color: #667eea;
+}
+
+.stat-value {
+  font-size: 13px;
+  color: #666;
+  font-weight: 500;
+}
+
+.buddy-card-footer {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+/* Removed Book Now button */
+
+.view-profile-btn {
+  flex: 1;
+  padding: 10px;
+  background: white;
+  color: #667eea;
+  border: 2px solid #667eea;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.view-profile-btn:hover {
+  background: #f0f4ff;
+}
+
+/* Compact version for horizontal scroll */
+.buddy-card.compact {
+  min-width: 240px;
+  max-width: 240px;
+}
+
+.buddy-card.compact .buddy-card-footer {
+  flex-direction: column;
+}
+
+.buddy-card.compact .view-profile-btn {
+  display: none;
+}
