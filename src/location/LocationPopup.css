@@ -1,0 +1,493 @@
+/* Location Popup - Zepto/Swiggy Style */
+
+/* Overlay */
+.location-popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 99999; /* Increased z-index to be above most elements */
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  animation: fadeIn 0.2s ease-out;
+}
+
+/* Main Popup Container */
+.location-popup {
+  background: white;
+  width: 100%;
+  max-width: 450px;
+  border-radius: 24px 24px 0 0;
+  max-height: 85vh;
+  overflow: hidden;
+  animation: slideUp 0.3s ease-out;
+  position: relative;
+  box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* Close Button */
+.location-popup-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: #f3f4f6;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 18px;
+  color: #6b7280;
+  transition: all 0.2s;
+  z-index: 1;
+}
+
+.location-popup-close:hover {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+/* Content Container */
+.location-popup-content {
+  padding: 24px 20px 20px;
+  overflow-y: auto;
+  max-height: calc(85vh - 60px);
+}
+
+/* Icon */
+.location-popup-icon {
+  font-size: 48px;
+  text-align: center;
+  margin-bottom: 16px;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+/* Title */
+.location-popup-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1f2937;
+  text-align: center;
+  margin: 0 0 8px 0;
+  line-height: 1.2;
+}
+
+/* Subtitle */
+.location-popup-subtitle {
+  font-size: 14px;
+  color: #6b7280;
+  text-align: center;
+  margin: 0 0 24px 0;
+  line-height: 1.5;
+  padding: 0 20px;
+}
+
+/* Detected Location Display */
+.detected-location {
+  background: #f0fdf4;
+  border: 1.5px solid #86efac;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  animation: fadeInScale 0.4s ease-out;
+  position: relative;
+  overflow: hidden;
+}
+
+.detected-location-icon {
+  font-size: 24px;
+  animation: bounce 1s ease-in-out infinite;
+}
+
+.detected-location-details {
+  flex: 1;
+}
+
+.detected-location-area {
+  font-size: 14px;
+  font-weight: 600;
+  color: #059669;
+  margin-bottom: 2px;
+}
+
+.detected-location-address {
+  font-size: 12px;
+  color: #047857;
+  line-height: 1.3;
+}
+
+.detected-location-loader {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  background: #10b981;
+  animation: loadingBar 1.5s ease-out forwards;
+}
+
+/* Primary Button */
+.location-popup-primary-btn {
+  width: 100%;
+  background: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 16px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  position: relative;
+  overflow: hidden;
+}
+
+.location-popup-primary-btn:hover:not(:disabled) {
+  background: #1d4ed8;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
+.location-popup-primary-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.location-popup-primary-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* Button Loader */
+.button-loader {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top: 2px solid white;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+/* Divider */
+.location-popup-divider {
+  text-align: center;
+  margin: 20px 0;
+  position: relative;
+}
+
+.location-popup-divider::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: #e5e7eb;
+}
+
+.location-popup-divider span {
+  background: white;
+  padding: 0 16px;
+  color: #9ca3af;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  position: relative;
+}
+
+/* Manual Entry Button */
+.location-popup-manual-btn {
+  width: 100%;
+  background: white;
+  color: #374151;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 14px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.location-popup-manual-btn:hover {
+  background: #f9fafb;
+  border-color: #d1d5db;
+  color: #111827;
+}
+
+.manual-icon {
+  font-size: 18px;
+}
+
+.location-popup-manual-btn .arrow {
+  margin-left: auto;
+  color: #9ca3af;
+  transition: transform 0.2s;
+}
+
+.location-popup-manual-btn:hover .arrow {
+  transform: translateX(3px);
+}
+
+/* Saved Addresses Section */
+.saved-addresses-section {
+  margin-top: 24px;
+}
+
+.saved-addresses-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0 0 12px 0;
+  padding: 0 4px;
+}
+
+/* Saved Address Item */
+.saved-address-item {
+  width: 100%;
+  background: white;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-align: left;
+}
+
+.saved-address-item:hover {
+  background: #f9fafb;
+  border-color: #2563eb;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.address-icon {
+  width: 36px;
+  height: 36px;
+  background: #f3f4f6;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.address-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.address-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 2px;
+}
+
+.address-text {
+  font-size: 12px;
+  color: #6b7280;
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.saved-address-item .arrow {
+  color: #9ca3af;
+  font-size: 16px;
+  transition: transform 0.2s;
+}
+
+.saved-address-item:hover .arrow {
+  transform: translateX(3px);
+  color: #2563eb;
+}
+
+/* View More Button */
+.view-more-btn {
+  width: 100%;
+  background: transparent;
+  color: #2563eb;
+  border: none;
+  padding: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+}
+
+.view-more-btn:hover {
+  background: #eff6ff;
+  border-radius: 8px;
+}
+
+/* Footer */
+.location-popup-footer {
+  padding: 16px 20px;
+  background: #f9fafb;
+  border-top: 1px solid #e5e7eb;
+  text-align: center;
+}
+
+.location-popup-footer p {
+  margin: 0;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes loadingBar {
+  from {
+    width: 0;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .location-popup {
+    max-height: 90vh;
+  }
+  
+  .location-popup-content {
+    padding: 20px 16px 16px;
+    max-height: calc(90vh - 50px);
+  }
+  
+  .location-popup-title {
+    font-size: 18px;
+  }
+  
+  .location-popup-subtitle {
+    font-size: 13px;
+    padding: 0 10px;
+  }
+  
+  .location-popup-primary-btn {
+    padding: 14px;
+    font-size: 15px;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .location-popup {
+    background: #1f2937;
+  }
+  
+  .location-popup-close {
+    background: #374151;
+    color: #e5e7eb;
+  }
+  
+  .location-popup-title {
+    color: #f9fafb;
+  }
+  
+  .location-popup-subtitle {
+    color: #9ca3af;
+  }
+  
+  .location-popup-manual-btn {
+    background: #1f2937;
+    color: #f3f4f6;
+    border-color: #374151;
+  }
+  
+  .saved-address-item {
+    background: #1f2937;
+    border-color: #374151;
+  }
+  
+  .address-label {
+    color: #f3f4f6;
+  }
+  
+  .location-popup-footer {
+    background: #111827;
+    border-color: #374151;
+  }
+} 
