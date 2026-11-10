@@ -1,0 +1,55 @@
+services:
+  postgres:
+    image: postgis/postgis:16-3.4
+    container_name: buddy-postgres
+    environment:
+      POSTGRES_DB: eldercompanion
+      POSTGRES_USER: buddy
+      POSTGRES_PASSWORD: buddy
+    ports:
+      - "5432:5432"
+    volumes:
+      - buddy_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U buddy -d eldercompanion"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: buddy-redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # The backend application. Kept behind the "app" profile so that
+  # `docker compose up` starts only Postgres + Redis for local development,
+  # while `docker compose --profile app up --build` runs the full stack.
+  app:
+    build:
+      context: ./backend
+    container_name: buddy-app
+    profiles: ["app"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/eldercompanion
+      DB_USERNAME: buddy
+      DB_PASSWORD: buddy
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      # Override in real deployments.
+      APP_SECURITY_JWT_SECRET: ZmFrZS1kZXYtc2VjcmV0LWtleS1jaGFuZ2UtbWUtaW4tcHJvZHVjdGlvbi0xMjM0
+    ports:
+      - "8080:8080"
+
+volumes:
+  buddy_pgdata:
