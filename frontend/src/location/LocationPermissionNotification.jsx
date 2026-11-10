@@ -1,27 +1,43 @@
 import React, { useEffect, useState } from 'react';
 import './LocationPopup.css';
 import IndiaMapIcon from './IndiaMapIcon';
-import { auth, db } from '../firebase';
-import { collection, getDocs } from 'firebase/firestore';
+import { useAuth } from '../auth/AuthContext';
+import { addressesApi } from '../api/profiles';
 import locationService from '../services/locationService';
 import { useNavigate } from 'react-router-dom';
 
 const LocationPermissionNotification = ({ open, onClose }) => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [saved, setSaved] = useState([]);
   const [detecting, setDetecting] = useState(false);
 
   useEffect(() => {
     if (!open) return;
-    const unsub = auth.onAuthStateChanged(async (user) => {
-      if (!user) return setSaved([]);
+    let cancelled = false;
+    const fetchSaved = async () => {
+      if (!user) {
+        setSaved([]);
+        return;
+      }
       try {
-        const snap = await getDocs(collection(db, 'users', user.uid, 'addresses'));
-        setSaved(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-      } catch (_) { setSaved([]); }
-    });
-    return () => unsub && unsub();
-  }, [open]);
+        const page = await addressesApi.list();
+        const content = page?.content || [];
+        const mapped = content.map((a) => ({
+          id: a.id,
+          label: a.label,
+          address: [a.line1, a.line2, a.city, a.state, a.postalCode].filter(Boolean).join(', '),
+          lat: a.latitude,
+          lng: a.longitude,
+        }));
+        if (!cancelled) setSaved(mapped);
+      } catch (_) {
+        if (!cancelled) setSaved([]);
+      }
+    };
+    fetchSaved();
+    return () => { cancelled = true; };
+  }, [open, user]);
 
   if (!open) return null;
 

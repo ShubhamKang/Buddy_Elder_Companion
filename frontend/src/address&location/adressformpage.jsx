@@ -1,13 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { auth, db } from '../firebase';
-import { collection, addDoc, doc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { addressesApi } from '../api/profiles';
+import { useAuth } from '../auth/AuthContext';
 
 const AddressForm = ({ selectedLocation, editingAddress, onSaveSuccess, onClose, isSelectMode }) => {
-  const [user, setUser] = useState(null);
-  useEffect(() => {
-    const unsub = auth.onAuthStateChanged(setUser);
-    return () => unsub && unsub();
-  }, []);
+  const { user } = useAuth();
   
   const [formData, setFormData] = useState({
     addressLabel: '',
@@ -32,17 +28,16 @@ const AddressForm = ({ selectedLocation, editingAddress, onSaveSuccess, onClose,
         landmark: editingAddress.landmark || ''
       });
     } else {
-      // Pre-fill with auth user data
-      const current = auth.currentUser;
+      // Pre-fill with authenticated user data
       setFormData({
         addressLabel: '',
         customLabel: '',
-        contactName: current?.displayName || '',
-        phoneNumber: (current?.phoneNumber || '').replace('+91', ''),
+        contactName: user?.fullName || '',
+        phoneNumber: (user?.phone || '').replace('+91', ''),
         landmark: ''
       });
     }
-  }, [editingAddress]);
+  }, [editingAddress, user]);
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({
@@ -88,7 +83,7 @@ const AddressForm = ({ selectedLocation, editingAddress, onSaveSuccess, onClose,
       return;
     }
     
-    const activeUser = auth.currentUser || user;
+    const activeUser = user;
     if (!activeUser) {
       setMessage({ text: 'Please sign in to save address', type: 'error' });
       return;
@@ -98,39 +93,39 @@ const AddressForm = ({ selectedLocation, editingAddress, onSaveSuccess, onClose,
     
     const finalAddressLabel = formData.addressLabel === 'Other' ? formData.customLabel : formData.addressLabel;
     
+    // Backend address shape: {label,line1,line2,city,state,postalCode,country,latitude,longitude,primary}
+    // Extra UI fields (name, phone, landmark, address) are preserved for the UI layer.
     const addressData = {
       label: finalAddressLabel.trim(),
       name: formData.contactName.trim(),
       phone: formData.phoneNumber.trim(),
       address: selectedLocation?.address || 'Address not selected',
+      line1: selectedLocation?.address || 'Address not selected',
       landmark: formData.landmark.trim(),
       lat: selectedLocation?.lat || 0,
       lng: selectedLocation?.lng || 0,
-      updatedAt: serverTimestamp()
+      latitude: selectedLocation?.lat || 0,
+      longitude: selectedLocation?.lng || 0
     };
 
     try {
-      const userAddressesRef = collection(db, 'users', activeUser.uid, 'addresses');
-      let savedAddressId = null;
-      
+      let saved = null;
+
       if (editingAddress?.id) {
         // Update existing address
-        const addressRef = doc(db, 'users', activeUser.uid, 'addresses', editingAddress.id);
-        await updateDoc(addressRef, addressData);
-        savedAddressId = editingAddress.id;
+        saved = await addressesApi.update(editingAddress.id, addressData);
         setMessage({ text: 'Address updated successfully!', type: 'success' });
       } else {
-        // Add new address
-        addressData.createdAt = serverTimestamp();
-        const docRef = await addDoc(userAddressesRef, addressData);
-        savedAddressId = docRef.id;
+        // Create new address
+        saved = await addressesApi.create(addressData);
         setMessage({ text: 'Address saved successfully!', type: 'success' });
       }
-      
+
       // Create address object with ID for callback
       const savedAddressData = {
         ...addressData,
-        id: savedAddressId
+        ...(saved || {}),
+        id: (saved && saved.id) || editingAddress?.id
       };
       
       // Call success callback after a short delay

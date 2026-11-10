@@ -1,43 +1,54 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { auth, db } from '../firebase';
-import { doc, getDoc, setDoc, deleteDoc } from 'firebase/firestore';
+import { useAuth } from '../auth/AuthContext';
+import { profilesApi } from '../api/profiles';
 import './Profile.css';
 
 const Profile = () => {
   const navigate = useNavigate();
+  const { user, logout } = useAuth();
   const [form, setForm] = useState({ fullName: '', mobileNumber: '', email: '' });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   useEffect(() => {
-    const unsub = auth.onAuthStateChanged(async (user) => {
+    let active = true;
+    (async () => {
       if (!user) {
         setLoading(false);
         return;
       }
+      // Seed from the auth user, then try to enrich from the profile endpoint.
+      let next = {
+        fullName: user.fullName || '',
+        mobileNumber: (user.phone || '').replace('+91', ''),
+        email: user.email || ''
+      };
       try {
-        const snap = await getDoc(doc(db, 'users', user.uid));
-        if (snap.exists()) {
-          const data = snap.data();
-          setForm({
-            fullName: data.fullName || '',
-            mobileNumber: data.mobileNumber || (user.phoneNumber || '').replace('+91', ''),
-            email: data.email || ''
-          });
-        } else {
-          setForm({
-            fullName: user.displayName || '',
-            mobileNumber: (user.phoneNumber || '').replace('+91', ''),
-            email: user.email || ''
-          });
+        const profile =
+          user.role === 'BUDDY'
+            ? await profilesApi.getMyBuddyProfile()
+            : await profilesApi.getMyElderProfile();
+        if (profile) {
+          next = {
+            fullName: profile.fullName || next.fullName,
+            mobileNumber: (profile.phone || next.mobileNumber || '').replace('+91', ''),
+            email: profile.email || next.email
+          };
         }
-      } catch (_) {}
-      setLoading(false);
-    });
-    return () => unsub();
-  }, []);
+      } catch (_) {
+        // Profile may not be set up yet (404) — fall back to auth user values.
+      }
+      if (active) {
+        setForm(next);
+        setLoading(false);
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, [user]);
 
   const handleChange = (field, value) => setForm((p) => ({ ...p, [field]: value }));
 
@@ -46,18 +57,16 @@ const Profile = () => {
     if (!form.fullName.trim()) return;
     setSaving(true);
     try {
-      const user = auth.currentUser;
-      if (!user) return;
-      const ref = doc(db, 'users', user.uid);
-      await setDoc(
-        ref,
-        {
-          fullName: form.fullName.trim(),
-          mobileNumber: form.mobileNumber,
-          email: form.email.trim()
-        },
-        { merge: true }
-      );
+      const body = {
+        fullName: form.fullName.trim(),
+        phone: form.mobileNumber,
+        email: form.email.trim()
+      };
+      if (user?.role === 'BUDDY') {
+        await profilesApi.upsertBuddyProfile(body);
+      } else {
+        await profilesApi.upsertElderProfile(body);
+      }
       alert('Profile updated');
       navigate(-1);
     } catch (err) {
@@ -69,16 +78,9 @@ const Profile = () => {
   };
 
   const confirmDelete = async () => {
+    // TODO: backend endpoint for account deletion. For now, log the user out.
     try {
-      const user = auth.currentUser;
-      if (!user) return;
-      await deleteDoc(doc(db, 'users', user.uid));
-      try {
-        await user.delete();
-      } catch (e) {
-        console.warn('Auth deletion needs recent login. Only data removed.', e);
-      }
-      await auth.signOut();
+      logout();
       navigate('/');
     } catch (e) {
       console.error(e);

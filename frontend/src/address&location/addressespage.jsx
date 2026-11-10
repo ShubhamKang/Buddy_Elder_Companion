@@ -1,12 +1,24 @@
 import React, { useState, useEffect } from 'react';
-import { db, auth } from '../firebase';
-import { collection, getDocs, doc, deleteDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { addressesApi } from '../api/profiles';
+import { useAuth } from '../auth/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Map from './mapcomp';
 import AddressForm from './adressformpage';
 
-// Debug Firebase connection
-console.log('Firebase db:', db);
+// Map a backend address (REST shape) to the shape this UI expects.
+const mapAddress = (a) => ({
+  ...a,
+  id: a.id,
+  label: a.label,
+  address: a.line1 || a.address || '',
+  name: a.name,
+  phone: a.phone,
+  landmark: a.landmark,
+  lat: a.latitude ?? a.lat ?? 0,
+  lng: a.longitude ?? a.lng ?? 0,
+  primary: a.primary,
+});
+
 console.log('Environment:', process.env.NODE_ENV);
 
 const AddressesWrapper = () => {
@@ -40,11 +52,7 @@ const AddressesWrapper = () => {
 };
 
 const Addresses = () => {
-  const [user, setUser] = useState(null);
-  useEffect(() => {
-    const unsub = auth.onAuthStateChanged(setUser);
-    return () => unsub && unsub();
-  }, []);
+  const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -73,19 +81,18 @@ const Addresses = () => {
     }
   }, [user]);
 
-  // Load addresses from Firestore
+  // Load addresses from the REST API
   const loadAddresses = async () => {
     if (!user) {
       console.log('No user in loadAddresses');
       return;
     }
-    
+
     try {
-      console.log('Loading addresses for user:', user.uid);
+      console.log('Loading addresses for user:', user.id);
       setLoading(true);
-      const addressesRef = collection(db, 'users', user.uid, 'addresses');
-      const snapshot = await getDocs(addressesRef);
-      const addressData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const page = await addressesApi.list({ size: 100 });
+      const addressData = (page?.content || []).map(mapAddress);
       console.log('Loaded addresses:', addressData);
       setAddresses(addressData);
     } catch (error) {
@@ -104,14 +111,8 @@ const Addresses = () => {
     console.log('🎯 returnPage parameter:', returnPage);
     
     try {
-      // Update last used timestamp
-      if (address.id) {
-        const addressRef = doc(db, 'users', user.uid, 'addresses', address.id);
-        await updateDoc(addressRef, {
-          lastUsed: serverTimestamp()
-        });
-      }
-      console.log('✅ Firebase update completed');
+      // TODO: backend endpoint for "last used" timestamp; backend sets timestamps.
+      console.log('✅ Address selection processed');
       
       // For location mode, save to userLocation
       if (isLocationSelectMode) {
@@ -204,8 +205,7 @@ const Addresses = () => {
     if (!window.confirm('Are you sure you want to delete this address?')) return;
     
     try {
-      const addressRef = doc(db, 'users', user.uid, 'addresses', id);
-      await deleteDoc(addressRef);
+      await addressesApi.remove(id);
       await loadAddresses();
     } catch (error) {
       console.error('Error deleting address:', error);

@@ -1,29 +1,51 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { auth, db } from '../firebase';
-import { doc, getDoc } from 'firebase/firestore';
+import { useAuth } from '../auth/AuthContext';
+import { profilesApi } from '../api/profiles';
 import './Settings.css';
 
 const Settings = () => {
   const navigate = useNavigate();
+  const { user, logout } = useAuth();
   const [profile, setProfile] = useState({ fullName: '', mobileNumber: '' });
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const roleLabel = { ELDER: 'Elder', BUDDY: 'Buddy Partner', ADMIN: 'Admin' }[user?.role] || 'Member';
+  const isElder = user?.role === 'ELDER';
 
   useEffect(() => {
-    const unsub = auth.onAuthStateChanged(async (user) => {
+    let active = true;
+    (async () => {
       if (!user) return;
+      // Seed from auth user, then try to enrich from the profile endpoint.
+      let next = {
+        fullName: user.fullName || '',
+        mobileNumber: (user.phone || '').replace('+91', '')
+      };
       try {
-        const snap = await getDoc(doc(db, 'users', user.uid));
-        if (snap.exists()) setProfile(snap.data());
-      } catch (_) {}
-    });
-    return () => unsub();
-  }, []);
+        const p =
+          user.role === 'BUDDY'
+            ? await profilesApi.getMyBuddyProfile()
+            : await profilesApi.getMyElderProfile();
+        if (p) {
+          next = {
+            fullName: p.fullName || next.fullName,
+            mobileNumber: (p.phone || next.mobileNumber || '').replace('+91', '')
+          };
+        }
+      } catch (_) {
+        // Profile may not be set up yet (404) — keep auth user values.
+      }
+      if (active) setProfile(next);
+    })();
+    return () => {
+      active = false;
+    };
+  }, [user]);
 
   return (
     <div className="settings-page">
       <div className="settings-header">
-        <button className="back-btn" onClick={() => navigate('/home')}>←</button>
+        <button className="back-btn" onClick={() => navigate(-1)} aria-label="Back">←</button>
         <h2>Settings</h2>
       </div>
 
@@ -32,35 +54,34 @@ const Settings = () => {
         <div className="profile-texts">
           <div className="name">{profile.fullName || 'Guest'}</div>
           <div className="mobile">{profile.mobileNumber || ''}</div>
-          <div className="badge">Member</div>
+          <div className="badge">{roleLabel}</div>
         </div>
-        <button className="renew-btn">Renew Now</button>
+        <button className="renew-btn" onClick={() => navigate('/profile')}>Edit</button>
       </div>
 
       <div className="settings-grid">
-        <button className="settings-tile">🛍️ Your Orders</button>
+        <button className="settings-tile" onClick={() => navigate('/bookings')}>📅 {isElder ? 'Your Bookings' : 'Your Jobs'}</button>
         <button className="settings-tile" onClick={() => navigate('/needhelp')}>💬 Help & Support</button>
-        <button className="settings-tile">💰 Buddy Cash</button>
+        <button className="settings-tile" onClick={() => navigate('/wallet')}>💰 Wallet</button>
       </div>
 
       <div className="settings-section">
         <h3 className="section-title">Your Information</h3>
         <div className="settings-list">
-          <button className="settings-row" onClick={() => navigate('/needhelp')}>💬 Help & Support</button>
-          <button className="settings-row">↩️ Refunds</button>
-          <button className="settings-row" onClick={() => navigate('/addresses?mode=select&return=settings')}>📍 Saved Addresses</button>
           <button className="settings-row" onClick={() => navigate('/profile')}>👤 Profile</button>
-          <button className="settings-row">🎁 Rewards</button>
-          <button className="settings-row">💳 Payment Management</button>
+          <button className="settings-row" onClick={() => navigate('/addresses?mode=select&return=settings')}>📍 Saved Addresses</button>
+          {isElder && <button className="settings-row" onClick={() => navigate('/sos')}>🆘 SOS & Emergency Contacts</button>}
+          {isElder && <button className="settings-row" onClick={() => navigate('/care')}>⏰ Reminders & Care Plans</button>}
+          <button className="settings-row" onClick={() => navigate('/wallet')}>💳 Wallet & Refunds</button>
         </div>
       </div>
 
       <div className="settings-section">
         <h3 className="section-title">Other Information</h3>
         <div className="settings-list">
-          <button className="settings-row">⭐ Suggest Products</button>
-          <button className="settings-row">🔔 Notifications</button>
-          <button className="settings-row">ℹ️ General Info</button>
+          <button className="settings-row" onClick={() => navigate('/notifications')}>🔔 Notifications</button>
+          <button className="settings-row" onClick={() => navigate('/needhelp')}>💬 Help & Support</button>
+          {user?.role === 'ADMIN' && <button className="settings-row" onClick={() => navigate('/admin')}>🛡️ Admin Console</button>}
         </div>
       </div>
 
@@ -80,7 +101,10 @@ const Settings = () => {
               <button className="btn-secondary" onClick={() => setShowLogoutConfirm(false)}>Cancel</button>
               <button
                 className="btn-danger"
-                onClick={() => auth.signOut().then(() => navigate('/'))}
+                onClick={() => {
+                  logout();
+                  navigate('/');
+                }}
               >
                 Log Out
               </button>

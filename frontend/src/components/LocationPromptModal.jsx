@@ -1,34 +1,46 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { auth, db } from '../firebase';
-import { collection, getDocs } from 'firebase/firestore';
+import { useAuth } from '../auth/AuthContext';
+import { addressesApi } from '../api/profiles';
 import locationService from '../services/locationService';
 
 const LocationPromptModal = ({ open, onClose }) => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [addresses, setAddresses] = useState([]);
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
 
   useEffect(() => {
     if (!open) return;
-    const unsub = auth.onAuthStateChanged(async (user) => {
+    let cancelled = false;
+    const fetchAddresses = async () => {
       if (!user) {
         setAddresses([]);
         setFetching(false);
         return;
       }
+      setFetching(true);
       try {
-        const snap = await getDocs(collection(db, 'users', user.uid, 'addresses'));
-        setAddresses(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+        const page = await addressesApi.list();
+        const content = page?.content || [];
+        const mapped = content.map((a) => ({
+          id: a.id,
+          label: a.label,
+          address: [a.line1, a.line2, a.city, a.state, a.postalCode].filter(Boolean).join(', '),
+          lat: a.latitude,
+          lng: a.longitude,
+        }));
+        if (!cancelled) setAddresses(mapped);
       } catch (_) {
-        setAddresses([]);
+        if (!cancelled) setAddresses([]);
       } finally {
-        setFetching(false);
+        if (!cancelled) setFetching(false);
       }
-    });
-    return () => unsub && unsub();
-  }, [open]);
+    };
+    fetchAddresses();
+    return () => { cancelled = true; };
+  }, [open, user]);
 
   if (!open) return null;
 

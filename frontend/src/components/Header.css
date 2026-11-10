@@ -290,3 +290,36 @@
 @media (max-width: 340px) {
   .loc-name { font-size: 11px; }
 }
+
+/* --- Additions: notification bell, menu polish, reset for <button> location bar --- */
+.header-bell { position: relative; }
+
+.header-badge {
+  position: absolute;
+  top: 2px;
+  right: 0;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  box-sizing: border-box;
+  border-radius: 9999px;
+  background: #ef4444;
+  color: #fff;
+  font-size: 10.5px;
+  font-weight: 800;
+  line-height: 18px;
+  text-align: center;
+  border: 2px solid rgba(255, 255, 255, 0.9);
+}
+
+.location-bar { font-family: inherit; text-align: left; }
+.loc-texts { text-align: left; }
+
+.menu-content { max-height: calc(100vh - 90px); overflow-y: auto; }
+.menu-content button span { width: 22px; text-align: center; font-size: 17px; }
+
+/* The wordmark isn't needed once the location bar takes the space. */
+@media (max-width: 768px) {
+  .header-logo { display: none; }
+  .menu-content { left: 12px; right: 12px; min-width: 0; }
+}

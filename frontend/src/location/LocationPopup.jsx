@@ -1,17 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { auth, db } from '../firebase';
-import { collection, getDocs } from 'firebase/firestore';
+import { useAuth } from '../auth/AuthContext';
+import { addressesApi } from '../api/profiles';
 import locationService from '../services/locationService';
 import './LocationPopup.css';
 
 const LocationPopup = ({ isOpen, onClose, onLocationSelect }) => {
   const navigate = useNavigate();
-  const [user, setUser] = useState(null);
-  useEffect(() => {
-    const unsub = auth.onAuthStateChanged(setUser);
-    return () => unsub && unsub();
-  }, []);
+  const { user } = useAuth();
   
   // States
   const [loading, setLoading] = useState(false);
@@ -114,11 +110,17 @@ const LocationPopup = ({ isOpen, onClose, onLocationSelect }) => {
 
   async function fetchSavedAddresses() {
     try {
-      const addressesRef = collection(db, 'users', user.uid, 'addresses');
-      const snapshot = await getDocs(addressesRef);
-      const addresses = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
+      const page = await addressesApi.list();
+      const content = page?.content || [];
+      const addresses = content.map((a) => ({
+        id: a.id,
+        label: a.label,
+        address: [a.line1, a.line2, a.city, a.state, a.postalCode].filter(Boolean).join(', '),
+        lat: a.latitude,
+        lng: a.longitude,
+        area: a.city || '',
+        city: a.city || '',
+        type: a.label ? a.label.toLowerCase() : 'saved',
       }));
       setSavedAddresses(addresses);
     } catch (error) {

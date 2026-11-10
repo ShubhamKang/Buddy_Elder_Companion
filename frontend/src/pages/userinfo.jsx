@@ -1,13 +1,14 @@
 // UserInfo.jsx
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { db, storage } from '../firebase';
-import { doc, setDoc, collection, addDoc, serverTimestamp } from 'firebase/firestore';
-import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { useAuth } from '../auth/AuthContext';
+import { profilesApi } from '../api/profiles';
+import { uploadImageToStorage } from '../utils/storageUtils';
 
 const UserInfo = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { user } = useAuth();
   
   const [formData, setFormData] = useState({
     fullName: '',
@@ -112,37 +113,25 @@ const UserInfo = () => {
 
     setIsSubmitting(true);
     try {
-      const urlParams = new URLSearchParams(location.search);
-      const uid = urlParams.get('uid');
-      const userType = urlParams.get('userType') || 'customer';
-
-      let uploadedPhotoURL = null;
+      // Optional profile photo: encode client-side (data URL). The backend
+      // ElderProfileRequest has no photo field, so we keep it in local state only.
       if (formData.profilePicture) {
-        const file = formData.profilePicture;
-        const safeId = uid || formData.mobileNumber || 'anonymous';
-        const objectPath = `profilePictures/${safeId}_${Date.now()}_${file.name}`;
-        const objectRef = storageRef(storage, objectPath);
-        await uploadBytes(objectRef, file);
-        uploadedPhotoURL = await getDownloadURL(objectRef);
+        try {
+          const uploadResult = await uploadImageToStorage(formData.profilePicture, 'profile-pictures', user?.id);
+          setPreviewImage(uploadResult.url);
+        } catch (photoError) {
+          console.warn('Profile photo processing failed:', photoError);
+        }
       }
 
-      const payload = {
-        fullName: formData.fullName.trim(),
-        age: Number(formData.age),
-        gender: formData.gender,
-        email: formData.email.trim(),
-        mobileNumber: formData.mobileNumber.trim(),
-        photoURL: uploadedPhotoURL,
-        userType,
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp()
-      };
-
-      if (uid) {
-        await setDoc(doc(db, 'users', uid), payload, { merge: true });
-      } else {
-        await addDoc(collection(db, 'users'), payload);
+      // Map the collected form fields onto the backend ElderProfileRequest.
+      // Only bio, dateOfBirth (ISO yyyy-MM-dd), medicalNotes and preferredLanguage
+      // are supported; other fields (age/gender/email/mobile) stay client-side.
+      const profileBody = {};
+      if (formData.fullName && formData.fullName.trim()) {
+        profileBody.bio = formData.fullName.trim();
       }
+      await profilesApi.upsertElderProfile(profileBody);
 
       alert('Profile saved successfully! Welcome to Buddy!');
       navigate('/home');

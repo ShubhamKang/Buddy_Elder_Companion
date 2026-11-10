@@ -1,13 +1,14 @@
 // BuddyInfo.jsx
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { db } from '../firebase';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { useAuth } from '../auth/AuthContext';
+import { profilesApi } from '../api/profiles';
 import { uploadImageToStorage, uploadMultipleFiles, createFileMetadata } from '../utils/storageUtils';
 
 const BuddyInfo = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { user } = useAuth();
   
   const [formData, setFormData] = useState({
     // Basic Information
@@ -118,7 +119,7 @@ const BuddyInfo = () => {
             url: uploadResult.url
           };
         } catch (storageError) {
-          console.warn('Firebase Storage upload failed, storing file info instead:', storageError);
+          console.warn('Profile photo upload failed, storing file info instead:', storageError);
           // Fallback: Store file metadata instead of uploading
           profilePhotoData = createFileMetadata(formData.profilePicture);
         }
@@ -184,16 +185,28 @@ const BuddyInfo = () => {
         hasExperience: formData.hasExperience,
         
         // Metadata
-        registrationDate: serverTimestamp(),
         status: 'pending_approval',
         isActive: true,
         hasStorageIssues: profilePhotoData || certificateData.length > 0
       };
       
-      // Add to Firestore
-      const docRef = await addDoc(collection(db, 'buddies'), buddyData);
-      
-      console.log('Buddy registered successfully with ID:', docRef.id);
+      // Persist the supported buddy profile fields via the REST API.
+      // BuddyProfileRequest: bio, skills (string), hourlyRate (number),
+      // yearsExperience (int), available (bool). Other collected fields
+      // (photo, availability, certificates) remain client-side only.
+      const bioParts = [];
+      if (buddyData.pastExperience) bioParts.push(buddyData.pastExperience);
+      if (buddyData.socialMediaProfile) bioParts.push(`Profile: ${buddyData.socialMediaProfile}`);
+
+      await profilesApi.upsertBuddyProfile({
+        bio: bioParts.join('\n') || undefined,
+        skills: formData.pastExperience || '',
+        hourlyRate: 0,
+        yearsExperience: formData.hasExperience ? 1 : 0,
+        available: formData.helpType === 'instant' || formData.helpType === 'both',
+      });
+
+      console.log('Buddy profile saved for user:', user?.id);
       
       // Show success message with appropriate warning if needed
       const hasUploadIssues = profilePhotoData || certificateData.length > 0;
@@ -940,7 +953,7 @@ const BuddyInfo = () => {
               >
                 {isLoading ? (
                   <>
-                    🔄 Saving to Firebase...
+                    🔄 Saving...
                   </>
                 ) : (
                   '🎉 Complete Registration'

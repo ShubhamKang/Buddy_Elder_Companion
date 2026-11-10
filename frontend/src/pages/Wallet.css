@@ -1,0 +1,30 @@
+.wallet-balance {
+  font-size: 38px;
+  font-weight: 900;
+  margin: 4px 0 12px;
+  position: relative;
+  z-index: 1;
+}
+
+.wallet-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.wallet-icon.credit { background: #dcfce7; }
+.wallet-icon.debit { background: #fee2e2; }
+
+.wallet-amount {
+  font-weight: 800;
+  font-size: 16px;
+  white-space: nowrap;
+}
+
+.wallet-amount.credit { color: #15803d; }
+.wallet-amount.debit { color: #b91c1c; }

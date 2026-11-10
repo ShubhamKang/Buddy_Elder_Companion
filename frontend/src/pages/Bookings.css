@@ -1,0 +1,16 @@
+.bk-tag { display:inline-block; font-size:12px; font-weight:700; padding:2px 8px; border-radius:999px; background:#eef0f6; color:#4b5563; margin-right:6px; }
+.bk-placeholder { width:46px; height:46px; border-radius:50%; background:#fef3c7; display:flex; align-items:center; justify-content:center; font-size:22px; flex-shrink:0; }
+.bk-radio { display:flex; align-items:center; gap:12px; width:100%; text-align:left; background:#fff; border:2px solid #e5e7eb; border-radius:16px; padding:14px; min-height:56px; cursor:pointer; font:inherit; color:inherit; }
+.bk-radio.selected { border-color:#667eea; background:#f5f6ff; }
+.bk-dot { width:22px; height:22px; border-radius:50%; border:2px solid #9ca3af; flex-shrink:0; display:flex; align-items:center; justify-content:center; }
+.bk-radio.selected .bk-dot { border-color:#667eea; }
+.bk-radio.selected .bk-dot::after { content:''; width:12px; height:12px; border-radius:50%; background:#667eea; }
+.bk-quick { display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
+.bk-quick button { min-height:44px; padding:8px 14px; border-radius:999px; border:1px solid #d1d5db; background:#fff; font-size:14px; font-weight:600; cursor:pointer; }
+.bk-quick button:active { background:#eef0f6; }
+.bk-actions { display:flex; gap:8px; margin-top:8px; }
+.bk-stars { display:flex; gap:6px; justify-content:center; margin:8px 0 14px; }
+.bk-star { font-size:38px; line-height:1; min-width:48px; min-height:48px; background:none; border:none; cursor:pointer; filter:grayscale(1); opacity:.45; }
+.bk-star.on { filter:none; opacity:1; }
+.bk-star:disabled { cursor:default; }
+.bk-link { color:#667eea; font-weight:700; text-decoration:none; }
