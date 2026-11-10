@@ -1,0 +1,20 @@
+# Test profile configuration.
+# Datasource is supplied dynamically by Testcontainers (@DynamicPropertySource).
+spring:
+  data:
+    redis:
+      # Redis is not exercised in Phase 0 tests; repositories auto-config disabled.
+      repositories:
+        enabled: false
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
+
+# Push scheduled jobs far into the future so tests drive sweep()/dispatchPending()
+# deterministically by calling them directly.
+app:
+  care:
+    sweep-interval-ms: 3600000
+  outbox:
+    dispatch-interval-ms: 3600000
