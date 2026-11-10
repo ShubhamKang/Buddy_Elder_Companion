@@ -256,7 +256,8 @@ class LocationService {
     }
 
     try {
-      const key = 'AIzaSyC62wo52XfJDOBnJc6VAQDDbse3a-KKy-k';
+      const key = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
+      if (!key) return null; // no key configured: coordinates-only fallback
       const resp = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${key}`);
       if (resp.ok) {
         const data = await resp.json();

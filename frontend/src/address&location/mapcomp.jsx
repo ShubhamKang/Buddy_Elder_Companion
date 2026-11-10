@@ -1,9 +1,13 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import locationService from '../services/locationService';
 // Lightweight web shims to avoid external/native deps in web build
-const GOOGLE_MAPS_API_KEY = 'AIzaSyC62wo52XfJDOBnJc6VAQDDbse3a-KKy-k';
+// Provided via frontend/.env.local (gitignored); see .env.example.
+const GOOGLE_MAPS_API_KEY = process.env.REACT_APP_GOOGLE_MAPS_API_KEY || '';
 const loadGoogleMapsAPI = async () => {
   if (window.google && window.google.maps) return;
+  if (!GOOGLE_MAPS_API_KEY) {
+    throw new Error('REACT_APP_GOOGLE_MAPS_API_KEY is not set');
+  }
   const script = document.createElement('script');
   script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places`;
   script.async = true;
