@@ -7,7 +7,9 @@ services:
       POSTGRES_USER: buddy
       POSTGRES_PASSWORD: buddy
     ports:
-      - "5432:5432"
+      # Host port is configurable: `POSTGRES_HOST_PORT=5433 docker compose up`
+      # avoids clashing with a Postgres already running on this machine.
+      - "${POSTGRES_HOST_PORT:-5432}:5432"
     volumes:
       - buddy_pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -20,7 +22,7 @@ services:
     image: redis:7-alpine
     container_name: buddy-redis
     ports:
-      - "6379:6379"
+      - "${REDIS_HOST_PORT:-6379}:6379"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
@@ -49,7 +51,9 @@ services:
       # Override in real deployments.
       APP_SECURITY_JWT_SECRET: ZmFrZS1kZXYtc2VjcmV0LWtleS1jaGFuZ2UtbWUtaW4tcHJvZHVjdGlvbi0xMjM0
     ports:
-      - "8080:8080"
+      # The frontend defaults to http://localhost:8080; if you change this, set
+      # REACT_APP_API_BASE_URL / REACT_APP_WS_URL in frontend/.env.local to match.
+      - "${APP_HOST_PORT:-8080}:8080"
 
 volumes:
   buddy_pgdata:
