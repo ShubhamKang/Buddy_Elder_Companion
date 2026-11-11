@@ -43,6 +43,15 @@ npm install
 npm start
 ```
 
+- **"port is already allocated"?** Another service on your machine is using a published port
+  (commonly Postgres on 5432). Pick a different host port; the app talks to Postgres over Docker's
+  internal network, so nothing else changes:
+  ```bash
+  POSTGRES_HOST_PORT=5433 docker compose --profile app up --build
+  # also available: REDIS_HOST_PORT (default 6379) and APP_HOST_PORT (default 8080)
+  ```
+  If you change `APP_HOST_PORT`, point the frontend at it via `REACT_APP_API_BASE_URL` and
+  `REACT_APP_WS_URL` in `frontend/.env.local`.
 - API docs (Swagger UI): http://localhost:8080/swagger-ui.html
 - Backend tests (need Docker for Testcontainers): `cd backend && ./mvnw test`
 
